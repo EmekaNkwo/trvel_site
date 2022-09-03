@@ -1,7 +1,6 @@
-import { SiIterm2 } from 'react-icons/si';
 import useFetch from '../../hooks/useFetch';
 import './featuredProperties.css';
-import { FeaturedPropertyData } from './FeaturedPropertyData';
+// import { FeaturedPropertyData } from './FeaturedPropertyData';
 
 const FeaturedProperties = () => {
     const { data, loading, error } = useFetch('/hotels?featured=true&limit=4 ');
@@ -11,12 +10,12 @@ const FeaturedProperties = () => {
                 'Please Wait'
             ) : (
                 <>
-                    {data.map((fp) => {
+                    {Object.keys(data)?.map((fp) => {
                         return (
                             <div className="fpItem" key={fp._id}>
                                 <img
                                     loading="lazy"
-                                    src={fp.photos[0]}
+                                    // src={fp?.photos[0]}
                                     alt={fp.name}
                                     className="fpImg"
                                 />
