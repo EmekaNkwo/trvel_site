@@ -1,23 +1,33 @@
 import './hotel.css';
-import { Navbar, Header, MailList, Footer } from '../../components';
+import {
+    Navbar,
+    Header,
+    MailList,
+    Footer,
+    ReserveModal,
+} from '../../components';
 import { FaArrowAltCircleLeft, FaArrowAltCircleRight } from 'react-icons/fa';
 import { MdCancel, MdLocationOn } from 'react-icons/md';
 import { useContext, useState } from 'react';
 import useFetch from '../../hooks/useFetch';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { SearchContext } from '../../context/SearchContext';
+import { AuthContext } from '../../context/AuthContext';
 
 const Hotel = () => {
     //image Sliding
     const [slideNumber, setSlideNumber] = useState(0);
     const [open, setOpen] = useState(false);
+    const [openReservation, setOpenReservation] = useState(false);
 
     //Api Fetch
     const location = useLocation();
     const id = location.pathname.split('/')[2];
-    const { data, loading, error } = useFetch(`/hotels/find${id}}`);
+    const { data, loading, error } = useFetch(`/hotels/find${id}`);
 
-    const { date } = useContext(SearchContext);
+    const { date, options } = useContext(SearchContext);
+    const { user } = useContext(AuthContext);
+    const navigate = useNavigate();
 
     const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
     const dayDifference = (date1, date2) => {
@@ -25,6 +35,8 @@ const Hotel = () => {
         const diffDays = Math.ceil(timeDiff / MILLISECONDS_PER_DAY);
         return diffDays;
     };
+
+    const days = dayDifference(date[0].endDate, date[0].startDate);
 
     const handleOpen = (i) => {
         setSlideNumber(i);
@@ -41,6 +53,16 @@ const Hotel = () => {
         }
 
         setSlideNumber(newSlideNumber);
+    };
+
+    //Handling the Reservation Button
+
+    const handleReservation = () => {
+        if (user) {
+            setOpenReservation(true);
+        } else {
+            navigate('/login');
+        }
     };
 
     return (
@@ -76,9 +98,12 @@ const Hotel = () => {
                             </div>
                         )}
                         <div className="hotelWrapper">
-                            <button className="bookNow">
+                            <butto
+                                onClick={handleReservation}
+                                className="bookNow"
+                            >
                                 Reserve or Book Now!
-                            </button>
+                            </butto>
                             <h1 className="hotelTitle">{data.name}</h1>
                             <div className="hotelAddress">
                                 <MdLocationOn />
@@ -110,14 +135,20 @@ const Hotel = () => {
                                     <p className="hotelDesc">{data.desc}</p>
                                 </div>
                                 <div className="hotelDetailsPrice">
-                                    <h1>Perfect for a 9-night stay!</h1>
+                                    <h1>Perfect for a {days}-night stay!</h1>
                                     <span>
                                         Located in the real heart of Krakow,
                                         this property has an excellent location
                                         score of 9.8!
                                     </span>
                                     <h2>
-                                        <b>$945</b> (9 nights)
+                                        <b>
+                                            $
+                                            {days *
+                                                data.cheapestPrice *
+                                                options.room}
+                                        </b>{' '}
+                                        ({days} nights)
                                     </h2>
                                     <button>Reserve or Book Now!</button>
                                 </div>
@@ -127,6 +158,9 @@ const Hotel = () => {
                         <Footer />
                     </div>
                 </>
+            )}
+            {openReservation && (
+                <ReserveModal setOpen={setOpenReservation} hotelId={id} />
             )}
         </div>
     );
